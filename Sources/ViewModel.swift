@@ -36,6 +36,16 @@ final class HeartRateViewModel: NSObject, ObservableObject {
         subtitle = "Searching for a sensor..."
         centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
     }
+
+    private func parseHeartRate(data: Data) -> Int {
+        let byteArray = [UInt8](data)
+        let flag = byteArray[0]
+        if flag & 0x01 == 0 {
+            return Int(byteArray[1]) // UInt8
+        } else {
+            return Int(UInt16(byteArray[1]) | UInt16(byteArray[2]) << 8) // UInt16 little endian
+        }
+    }
 }
 
 extension HeartRateViewModel: CBCentralManagerDelegate {
@@ -49,7 +59,6 @@ extension HeartRateViewModel: CBCentralManagerDelegate {
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
-        print(error)
         startScanning()
     }
 
@@ -91,20 +100,10 @@ extension HeartRateViewModel: CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let data = characteristic.value else { return }
-        let bpm = parseHeartRate(from: data)
+        let bpm = parseHeartRate(data: data)
         DispatchQueue.main.async {
             self.heartRate = bpm
             self.heartbeatPulse.toggle()
-        }
-    }
-
-    private func parseHeartRate(from data: Data) -> Int {
-        let byteArray = [UInt8](data)
-        let flag = byteArray[0]
-        if flag & 0x01 == 0 {
-            return Int(byteArray[1]) // UInt8
-        } else {
-            return Int(UInt16(byteArray[1]) | UInt16(byteArray[2]) << 8) // UInt16 little endian
         }
     }
 }
