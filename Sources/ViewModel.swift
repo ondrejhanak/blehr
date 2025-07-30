@@ -64,7 +64,11 @@ nonisolated extension HeartRateViewModel: CBCentralManagerDelegate {
         }
     }
 
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
+    func centralManager(
+        _ central: CBCentralManager,
+        didDisconnectPeripheral peripheral: CBPeripheral,
+        error: (any Error)?
+    ) {
         Task { @MainActor in
             startScanning()
         }
