@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		EE37D3212E38CD31000BAA68 /* blehr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = blehr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE37D3212E38CD31000BAA68 /* BLE HR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BLE HR.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -46,7 +46,7 @@
 		EE37D3222E38CD31000BAA68 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				EE37D3212E38CD31000BAA68 /* blehr.app */,
+				EE37D3212E38CD31000BAA68 /* BLE HR.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -74,7 +74,7 @@
 			packageProductDependencies = (
 			);
 			productName = blehr;
-			productReference = EE37D3212E38CD31000BAA68 /* blehr.app */;
+			productReference = EE37D3212E38CD31000BAA68 /* BLE HR.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -275,7 +275,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = cz.ondrejhanak.blehr;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "BLE HR";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -306,7 +306,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = cz.ondrejhanak.blehr;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "BLE HR";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
