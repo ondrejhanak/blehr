@@ -5,10 +5,11 @@
 //  Created by Ondrej Hanak on 29.07.2025.
 //
 
-import CoreBluetooth
+@preconcurrency import CoreBluetooth
 import Combine
 import UIKit
 
+@MainActor
 final class HeartRateViewModel: NSObject, ObservableObject {
     @Published var heartRate: Int?
     @Published var heartbeatPulse = false
@@ -17,8 +18,8 @@ final class HeartRateViewModel: NSObject, ObservableObject {
 
     private var centralManager: CBCentralManager!
     private var heartRatePeripheral: CBPeripheral?
-    private let heartRateServiceUUID = CBUUID(string: "0x180D")
-    private let heartRateMeasurementUUID = CBUUID(string: "0x2A37")
+    private nonisolated let heartRateServiceUUID = CBUUID(string: "0x180D")
+    private nonisolated let heartRateMeasurementUUID = CBUUID(string: "0x2A37")
 
     override init() {
         super.init()
@@ -37,7 +38,7 @@ final class HeartRateViewModel: NSObject, ObservableObject {
         centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
     }
 
-    private func parseHeartRate(data: Data) -> Int {
+    private nonisolated func parseHeartRate(data: Data) -> Int {
         let byteArray = [UInt8](data)
         let flag = byteArray[0]
         if flag & 0x01 == 0 {
@@ -46,20 +47,27 @@ final class HeartRateViewModel: NSObject, ObservableObject {
             return Int(UInt16(byteArray[1]) | UInt16(byteArray[2]) << 8) // UInt16 little endian
         }
     }
+
+    private func handleAvailabilityChange(_ isAvailable: Bool) {
+        bluetoothAvailable = isAvailable
+        if isAvailable {
+            startScanning()
+        }
+    }
 }
 
-extension HeartRateViewModel: CBCentralManagerDelegate {
+nonisolated extension HeartRateViewModel: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        guard central.state == .poweredOn else {
-            bluetoothAvailable = false
-            return
+        let isAvailable = central.state == .poweredOn
+        Task { @MainActor in
+            handleAvailabilityChange(isAvailable)
         }
-        bluetoothAvailable = true
-        startScanning()
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
-        startScanning()
+        Task { @MainActor in
+            startScanning()
+        }
     }
 
     func centralManager(
@@ -71,12 +79,12 @@ extension HeartRateViewModel: CBCentralManagerDelegate {
         guard let isConnectable = advertisementData[CBAdvertisementDataIsConnectable] as? Bool, isConnectable else {
             return
         }
-        heartRatePeripheral = peripheral
-        heartRatePeripheral?.delegate = self
-        centralManager.stopScan()
-        centralManager.connect(peripheral, options: nil)
-        DispatchQueue.main.async {
-            self.subtitle = peripheral.name
+        peripheral.delegate = self
+        central.stopScan()
+        central.connect(peripheral, options: nil)
+        Task { @MainActor in
+            heartRatePeripheral = peripheral
+            subtitle = peripheral.name
         }
     }
 
@@ -85,7 +93,7 @@ extension HeartRateViewModel: CBCentralManagerDelegate {
     }
 }
 
-extension HeartRateViewModel: CBPeripheralDelegate {
+nonisolated extension HeartRateViewModel: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard let services = peripheral.services else { return }
         guard let service = services.first(where: { $0.uuid == heartRateServiceUUID }) else { return }
@@ -101,9 +109,9 @@ extension HeartRateViewModel: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let data = characteristic.value else { return }
         let bpm = parseHeartRate(data: data)
-        DispatchQueue.main.async {
-            self.heartRate = bpm
-            self.heartbeatPulse.toggle()
+        Task { @MainActor in
+            heartRate = bpm
+            heartbeatPulse.toggle()
         }
     }
 }
