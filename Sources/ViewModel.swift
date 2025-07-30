@@ -30,6 +30,12 @@ final class HeartRateViewModel: NSObject, ObservableObject {
             UIApplication.shared.open(url)
         }
     }
+
+    private func startScanning() {
+        heartRate = nil
+        subtitle = "Searching for a sensor..."
+        centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
+    }
 }
 
 extension HeartRateViewModel: CBCentralManagerDelegate {
@@ -39,8 +45,12 @@ extension HeartRateViewModel: CBCentralManagerDelegate {
             return
         }
         bluetoothAvailable = true
-        subtitle = "Searching for a sensor..."
-        centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
+        startScanning()
+    }
+
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
+        print(error)
+        startScanning()
     }
 
     func centralManager(
