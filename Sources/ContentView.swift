@@ -15,7 +15,16 @@ struct ContentView: View {
             Text("Heart Rate")
                 .font(.title)
 
-            if let bpm = viewModel.heartRate {
+            if !viewModel.bluetoothAvailable {
+                Text("Please enable Bluetooth to see the heart rate.")
+                    .font(.body)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                Button("Settings") {
+                    viewModel.openSettings()
+                }
+                .buttonStyle(.borderedProminent)
+            } else if let bpm = viewModel.heartRate {
                 HStack(spacing: 10) {
                     Image(systemName: "heart.fill")
                         .font(.system(size: 32))

@@ -13,6 +13,7 @@ final class HeartRateViewModel: NSObject, ObservableObject {
     @Published var heartRate: Int?
     @Published var heartbeatPulse = false
     @Published var subtitle: String?
+    @Published var bluetoothAvailable = true
 
     private var centralManager: CBCentralManager!
     private var heartRatePeripheral: CBPeripheral?
@@ -34,9 +35,10 @@ final class HeartRateViewModel: NSObject, ObservableObject {
 extension HeartRateViewModel: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         guard central.state == .poweredOn else {
-            print("Bluetooth is not available.")
+            bluetoothAvailable = false
             return
         }
+        bluetoothAvailable = true
         subtitle = "Searching for a sensor..."
         centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
     }
