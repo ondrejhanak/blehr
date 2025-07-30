@@ -7,6 +7,8 @@
 An iOS demo app showcasing **Bluetooth Low Energy** communication using SwiftUI, Combine, and CoreBluetooth.  
 This project connects to a BLE heart rate sensor and displays real-time BPM values with animated feedback.
 
+There is also a companion [ESP32 HR Simulator](https://github.com/ondrejhanak/blehr-sim) for easier testing, especially of 16-bit values as described below.
+
 ## Features
 
 - Scans for BLE peripherals advertising the **Heart Rate Service** (`UUID 0x180D`)
@@ -19,7 +21,7 @@ This project connects to a BLE heart rate sensor and displays real-time BPM valu
 
 - iOS 15.0+
 - Real iOS device (BLE is not available in the simulator)
-- BLE heart rate monitor supporting BLE (some Garmin models are ANT+ only)
+- BLE heart rate monitor supporting BLE (some Garmin models are ANT+ only) or the [simulator](https://github.com/ondrejhanak/blehr-sim)
 
 ## Screen Recording
 
