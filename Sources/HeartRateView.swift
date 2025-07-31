@@ -16,38 +16,36 @@ struct HeartRateView: View {
                 .font(.title)
             switch viewModel.state {
             case .disabled:
-                Text("Please enable Bluetooth to see the heart rate.")
-                    .font(.body)
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-                Button("Settings") {
-                    viewModel.openSettings()
-                }
-                .buttonStyle(.borderedProminent)
+                disabledView
             case .ready:
                 EmptyView() // no visual representation
             case .scanning:
-                ProgressView()
-                Text("Searching for a sensor...")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-            case .connected(let info):
-                HStack(spacing: 10) {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 32))
-                        .scaleEffect(viewModel.heartbeatPulse ? 1.25 : 1.0)
-                        .animation(.spring(response: 0.4, dampingFraction: 0.3), value: info.timestamp)
-                    Text(info.bpm, format: .number)
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                }
-                .foregroundColor(.red)
-                Text(info.name)
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                scanningView
+            case let .connected(info):
+                PulseView(info: info)
             }
         }
         .padding()
+    }
+
+    @ViewBuilder
+    private var disabledView: some View {
+        Text("Please enable Bluetooth to see the heart rate.")
+            .font(.body)
+            .foregroundColor(.gray)
+            .multilineTextAlignment(.center)
+        Button("Settings") {
+            viewModel.openSettings()
+        }
+        .buttonStyle(.borderedProminent)
+    }
+
+    @ViewBuilder
+    private var scanningView: some View {
+        ProgressView()
+        Text("Searching for a sensor...")
+            .font(.caption)
+            .foregroundColor(.gray)
     }
 }
 
