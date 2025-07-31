@@ -1,5 +1,5 @@
 //
-//  ViewModel.swift
+//  HeartRateViewModel.swift
 //  blehr
 //
 //  Created by Ondrej Hanak on 29.07.2025.

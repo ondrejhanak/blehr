@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  HeartRateView.swift
 //  blehr
 //
 //  Created by Ondrej Hanak on 29.07.2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct HeartRateView: View {
     @ObservedObject var viewModel: HeartRateViewModel
 
     var body: some View {
@@ -50,5 +50,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView(viewModel: .init())
+    HeartRateView(viewModel: .init())
 }
