@@ -51,6 +51,28 @@ struct HeartRateView: View {
     }
 }
 
-#Preview {
-    HeartRateView(viewModel: .init())
+#if DEBUG
+#Preview("connected") {
+    let info = SensorInfo(bpm: 123, name: "Preview Sensor", timestamp: .now)
+    let service = SensorServiceMock(state: .connected(info))
+    return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
 }
+
+#Preview("disabled") {
+    let service = SensorServiceMock(state: .disabled)
+    return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
+}
+
+#Preview("ready") {
+    let service = SensorServiceMock(state: .ready)
+    return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
+
+
+}
+
+#Preview("scanning") {
+    let service = SensorServiceMock(state: .scanning)
+    return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
+
+}
+#endif
