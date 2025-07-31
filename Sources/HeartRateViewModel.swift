@@ -13,10 +13,8 @@ final class HeartRateViewModel: ObservableObject {
     private var sensorService: SensorServiceType
     private var cancellables = Set<AnyCancellable>()
 
-    @Published var bluetoothAvailable = true
-    @Published var heartRate: Int?
+    @Published var state: SensorState = .scanning
     @Published var heartbeatPulse = false
-    @Published var sensorName: String?
 
     // MARK: - Lifecycle
 
@@ -36,30 +34,17 @@ final class HeartRateViewModel: ObservableObject {
     // MARK: - Private
 
     private func setupObservation() {
-        sensorService.isConnectionAvailable
+        sensorService.state
             .receive(on: RunLoop.main)
-            .sink { [weak self] isAvailable in
-                self?.handleAvailabilityChange(isAvailable)
+            .sink { [weak self] state in
+                self?.state = state
+                if state == .scanning {
+                    self?.sensorService.startScanning()
+                }
+                if case .connected = state {
+                    self?.heartbeatPulse.toggle()
+                }
             }
             .store(in: &cancellables)
-        sensorService.heartRate
-            .receive(on: RunLoop.main)
-            .assign(to: &$heartRate)
-        sensorService.heartbeatPulse
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.heartbeatPulse.toggle()
-            }
-            .store(in: &cancellables)
-        sensorService.connectedSensorName
-            .receive(on: RunLoop.main)
-            .assign(to: &$sensorName)
-    }
-
-    private func handleAvailabilityChange(_ isAvailable: Bool) {
-        bluetoothAvailable = isAvailable
-        if isAvailable {
-            sensorService.startScanning()
-        }
     }
 }

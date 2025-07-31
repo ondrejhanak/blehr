@@ -9,10 +9,7 @@ import CoreBluetooth
 import Combine
 
 protocol SensorServiceType: AnyObject {
-    var isConnectionAvailable: AnyPublisher<Bool, Never> { get }
-    var connectedSensorName: AnyPublisher<String?, Never> { get }
-    var heartRate: AnyPublisher<Int?, Never> { get }
-    var heartbeatPulse: AnyPublisher<Void, Never> { get }
+    var state: AnyPublisher<SensorState, Never> { get }
 
     func startScanning()
 }
@@ -20,36 +17,12 @@ protocol SensorServiceType: AnyObject {
 final class SensorService: NSObject, SensorServiceType {
     private let heartRateServiceUUID = CBUUID(string: "0x180D")
     private let heartRateMeasurementUUID = CBUUID(string: "0x2A37")
-    private let isConnectionAvailableSubject = PassthroughSubject<Bool, Never>()
-    private let connectedSensorNameSubject = PassthroughSubject<String?, Never>()
-    private let heartRateSubject = PassthroughSubject<Int?, Never>()
-    private let heartbeatPulseSubject = PassthroughSubject<Void, Never>()
+    private let stateSubject = PassthroughSubject<SensorState, Never>()
     private var centralManager: CBCentralManager!
+    private var heartRatePeripheral: CBPeripheral?
 
-    private var heartRatePeripheral: CBPeripheral? {
-        didSet {
-            if let peripheral = heartRatePeripheral {
-                connectedSensorNameSubject.send(peripheral.name ?? "???")
-            } else {
-                connectedSensorNameSubject.send(nil)
-            }
-        }
-    }
-
-    var isConnectionAvailable: AnyPublisher<Bool, Never> {
-        isConnectionAvailableSubject.eraseToAnyPublisher()
-    }
-
-    var connectedSensorName: AnyPublisher<String?, Never> {
-        connectedSensorNameSubject.eraseToAnyPublisher()
-    }
-
-    var heartRate: AnyPublisher<Int?, Never> {
-        heartRateSubject.eraseToAnyPublisher()
-    }
-
-    var heartbeatPulse: AnyPublisher<Void, Never> {
-        heartbeatPulseSubject.eraseToAnyPublisher()
+    var state: AnyPublisher<SensorState, Never> {
+        stateSubject.eraseToAnyPublisher()
     }
 
     // MARK: - Lifecycle
@@ -62,8 +35,6 @@ final class SensorService: NSObject, SensorServiceType {
     // MARK: - Methods
 
     func startScanning() {
-        heartRateSubject.send(nil)
-        connectedSensorNameSubject.send(nil)
         centralManager.stopScan()
         centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
     }
@@ -83,8 +54,11 @@ final class SensorService: NSObject, SensorServiceType {
 
 extension SensorService: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        let isAvailable = central.state == .poweredOn
-        isConnectionAvailableSubject.send(isAvailable)
+        if central.state == .poweredOn {
+            stateSubject.send(.scanning)
+        } else {
+            stateSubject.send(.disabled)
+        }
     }
 
     func centralManager(
@@ -92,6 +66,7 @@ extension SensorService: CBCentralManagerDelegate {
         didDisconnectPeripheral peripheral: CBPeripheral,
         error: (any Error)?
     ) {
+        stateSubject.send(.scanning)
         startScanning()
     }
 
@@ -131,7 +106,11 @@ extension SensorService: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let data = characteristic.value else { return }
         let bpm = parseHeartRate(data: data)
-        heartbeatPulseSubject.send(())
-        heartRateSubject.send(bpm)
+        let info = SensorInfo(
+            bpm: bpm,
+            name: peripheral.name ?? "(unnamed)",
+            timestamp: .now
+        )
+        stateSubject.send(.connected(info))
     }
 }
