@@ -35,6 +35,7 @@ final class SensorService: NSObject, SensorServiceType {
     // MARK: - Methods
 
     func startScanning() {
+        stateSubject.send(.scanning)
         centralManager.stopScan()
         centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
     }
@@ -55,7 +56,7 @@ final class SensorService: NSObject, SensorServiceType {
 extension SensorService: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn {
-            stateSubject.send(.scanning)
+            stateSubject.send(.ready)
         } else {
             stateSubject.send(.disabled)
         }
@@ -66,8 +67,7 @@ extension SensorService: CBCentralManagerDelegate {
         didDisconnectPeripheral peripheral: CBPeripheral,
         error: (any Error)?
     ) {
-        stateSubject.send(.scanning)
-        startScanning()
+        stateSubject.send(.ready)
     }
 
     func centralManager(

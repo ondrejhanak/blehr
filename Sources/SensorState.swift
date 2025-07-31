@@ -15,6 +15,7 @@ struct SensorInfo: Equatable {
 
 enum SensorState: Equatable {
     case disabled
+    case ready
     case scanning
     case connected(SensorInfo)
 }

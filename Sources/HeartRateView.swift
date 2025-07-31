@@ -24,6 +24,8 @@ struct HeartRateView: View {
                     viewModel.openSettings()
                 }
                 .buttonStyle(.borderedProminent)
+            case .ready:
+                EmptyView() // no visual representation
             case .scanning:
                 ProgressView()
                 Text("Searching for a sensor...")
