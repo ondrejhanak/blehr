@@ -35,12 +35,14 @@ struct HeartRateView: View {
                         .monospacedDigit()
                 }
                 .foregroundColor(.red)
+                if let sensorName = viewModel.sensorName {
+                    Text(sensorName)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
             } else {
                 ProgressView()
-            }
-
-            if let subtitle = viewModel.subtitle {
-                Text(subtitle)
+                Text("Searching for a sensor...")
                     .font(.caption)
                     .foregroundColor(.gray)
             }

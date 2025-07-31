@@ -16,7 +16,7 @@ final class HeartRateViewModel: ObservableObject {
     @Published var bluetoothAvailable = true
     @Published var heartRate: Int?
     @Published var heartbeatPulse = false
-    @Published var subtitle: String?
+    @Published var sensorName: String?
 
     // MARK: - Lifecycle
 
@@ -51,18 +51,9 @@ final class HeartRateViewModel: ObservableObject {
                 self?.heartbeatPulse.toggle()
             }
             .store(in: &cancellables)
-        Publishers.CombineLatest(
-            sensorService.connectedSensorName,
-            sensorService.isConnectionAvailable,
-        )
-        .sink { [weak self] name, isAvailable in
-            if isAvailable {
-                self?.subtitle = name ?? "Searching for a sensor..."
-            } else {
-                self?.subtitle = nil
-            }
-        }
-        .store(in: &cancellables)
+        sensorService.connectedSensorName
+            .receive(on: RunLoop.main)
+            .assign(to: &$sensorName)
     }
 
     private func handleAvailabilityChange(_ isAvailable: Bool) {
