@@ -27,7 +27,7 @@ final class SensorService: NSObject, SensorServiceType {
     private var centralManager: CBCentralManager!
     private var heartRatePeripheral: CBPeripheral?
     private var discovered: [UUID: (sensor: DiscoveredSensor, lastSeen: Date)] = [:]
-    private var cleanupTimer: Timer?
+    private var cleanupCancellable: AnyCancellable?
 
     var state: AnyPublisher<SensorState, Never> {
         stateSubject.eraseToAnyPublisher()
@@ -53,17 +53,18 @@ final class SensorService: NSObject, SensorServiceType {
         discovered.removeAll()
         publishScanningList()
         centralManager.stopScan()
-        cleanupTimer?.invalidate()
-        cleanupTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.pruneStaleSensors()
-        }
-        RunLoop.main.add(cleanupTimer!, forMode: .common)
+        cleanupCancellable?.cancel()
         centralManager.scanForPeripherals(withServices: [heartRateServiceUUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
+        cleanupCancellable = Timer.publish(every: sensorDiscoveryTimeout, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.pruneStaleSensors()
+            }
     }
 
     func connect(id: DiscoveredSensor.ID) {
         stateSubject.send(.connecting)
-        cleanupTimer?.invalidate()
+        cleanupCancellable?.cancel()
         let peripherals = centralManager.retrievePeripherals(withIdentifiers: [id])
         if let peripheral = peripherals.first {
             peripheral.delegate = self
