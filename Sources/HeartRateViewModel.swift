@@ -47,7 +47,7 @@ final class HeartRateViewModel: ObservableObject {
             .sink { [weak self] state in
                 self?.state = state
                 if state == .idle {
-                    self?.sensorService.startScanning()
+                    self?.sensorService.scan()
                 }
                 if case .connected = state {
                     self?.heartbeatPulse.toggle()

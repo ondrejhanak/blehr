@@ -11,7 +11,7 @@ import Combine
 protocol SensorServiceType: AnyObject {
     var state: AnyPublisher<SensorState, Never> { get }
 
-    func startScanning()
+    func scan()
     func connect(id: DiscoveredSensor.ID)
     func disconnect()
 }
@@ -49,7 +49,7 @@ final class SensorService: NSObject, SensorServiceType {
 
     // MARK: - Methods
 
-    func startScanning() {
+    func scan() {
         discovered.removeAll()
         publishScanningList()
         centralManager.stopScan()
@@ -190,7 +190,7 @@ final class SensorServiceMock: SensorServiceType {
         stateSubject = CurrentValueSubject(state)
     }
 
-    func startScanning() {}
+    func scan() {}
     func connect(id: UUID) {}
     func disconnect() {}
 }
