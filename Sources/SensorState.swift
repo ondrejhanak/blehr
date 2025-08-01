@@ -9,7 +9,7 @@ import Foundation
 
 struct SensorInfo: Equatable {
     let bpm: Int
-    let name: String
+    let name: String?
     let timestamp: Date
 }
 

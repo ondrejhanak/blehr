@@ -108,7 +108,7 @@ extension SensorService: CBPeripheralDelegate {
         let bpm = parseHeartRate(data: data)
         let info = SensorInfo(
             bpm: bpm,
-            name: peripheral.name ?? "(unnamed)",
+            name: peripheral.name,
             timestamp: .now
         )
         stateSubject.send(.connected(info))

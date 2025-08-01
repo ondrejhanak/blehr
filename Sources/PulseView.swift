@@ -25,7 +25,7 @@ struct PulseView: View {
         .onChange(of: info) { _ in
             heartbeatPulse.toggle()
         }
-        Text(info.name)
+        Text(info.name ?? "(unnamed)")
             .font(.caption)
             .foregroundColor(.gray)
     }
