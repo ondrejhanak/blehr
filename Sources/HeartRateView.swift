@@ -25,6 +25,12 @@ struct HeartRateView: View {
                 ProgressView()
             case let .connected(info):
                 PulseView(info: info)
+                Button("Disconnect") {
+                    viewModel.disconnect()
+                }
+                .buttonStyle(.bordered)
+                .tint(.secondary)
+                .padding(.top)
             }
         }
         .padding()

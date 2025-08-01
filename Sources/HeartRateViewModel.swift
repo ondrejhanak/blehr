@@ -35,6 +35,10 @@ final class HeartRateViewModel: ObservableObject {
         sensorService.connect(id: id)
     }
 
+    func disconnect() {
+        sensorService.disconnect()
+    }
+
     // MARK: - Private
 
     private func setupObservation() {

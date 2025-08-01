@@ -13,6 +13,7 @@ protocol SensorServiceType: AnyObject {
 
     func startScanning()
     func connect(id: DiscoveredSensor.ID)
+    func disconnect()
 }
 
 final class SensorService: NSObject, SensorServiceType {
@@ -65,6 +66,11 @@ final class SensorService: NSObject, SensorServiceType {
         }
     }
 
+    func disconnect() {
+        guard let heartRatePeripheral else { return }
+        centralManager.cancelPeripheralConnection(heartRatePeripheral)
+    }
+
     // MARK: - Private
 
     private func parseHeartRate(data: Data) -> Int {
@@ -89,7 +95,6 @@ final class SensorService: NSObject, SensorServiceType {
             .sorted(by: { $0.rssi > $1.rssi })
         stateSubject.send(.scanning(sensors))
     }
-
 }
 
 extension SensorService: CBCentralManagerDelegate {
@@ -177,5 +182,6 @@ final class SensorServiceMock: SensorServiceType {
 
     func startScanning() {}
     func connect(id: UUID) {}
+    func disconnect() {}
 }
 #endif
