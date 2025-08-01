@@ -107,6 +107,7 @@ extension SensorService: CBPeripheralDelegate {
         guard let data = characteristic.value else { return }
         let bpm = parseHeartRate(data: data)
         let info = SensorInfo(
+            id: peripheral.identifier,
             bpm: bpm,
             name: peripheral.name,
             timestamp: .now

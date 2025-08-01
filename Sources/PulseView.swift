@@ -25,12 +25,12 @@ struct PulseView: View {
         .onChange(of: info) { _ in
             heartbeatPulse.toggle()
         }
-        Text(info.name ?? "(unnamed)")
+        Text(info.name ?? info.id.uuidString)
             .font(.caption)
             .foregroundColor(.gray)
     }
 }
 
 #Preview {
-    PulseView(info: .init(bpm: 123, name: "Preview Sensor", timestamp: .now))
+    PulseView(info: .init(id: UUID(), bpm: 123, name: "Preview Sensor", timestamp: .now))
 }

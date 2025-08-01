@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct SensorInfo: Equatable {
+struct SensorInfo: Identifiable, Equatable {
+    let id: UUID
     let bpm: Int
     let name: String?
     let timestamp: Date
