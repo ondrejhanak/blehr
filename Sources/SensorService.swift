@@ -19,8 +19,10 @@ protocol SensorServiceType: AnyObject {
 final class SensorService: NSObject, SensorServiceType {
     let sensorDiscoveryTimeout: TimeInterval = 5
 
+    private var cancellables = Set<AnyCancellable>()
     private let heartRateServiceUUID = CBUUID(string: "0x180D")
     private let heartRateMeasurementUUID = CBUUID(string: "0x2A37")
+    private let scanningListSubject = PassthroughSubject<[DiscoveredSensor], Never>()
     private let stateSubject = PassthroughSubject<SensorState, Never>()
     private var centralManager: CBCentralManager!
     private var heartRatePeripheral: CBPeripheral?
@@ -36,6 +38,13 @@ final class SensorService: NSObject, SensorServiceType {
     override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil)
+
+        scanningListSubject
+            .throttle(for: .milliseconds(1000), scheduler: RunLoop.main, latest: true) // throttle rapid refresh
+            .sink { [weak self] sensors in
+                self?.stateSubject.send(.scanning(sensors))
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Methods
@@ -93,7 +102,7 @@ final class SensorService: NSObject, SensorServiceType {
         let sensors = discovered.values
             .map { $0.sensor }
             .sorted(by: { $0.rssi > $1.rssi })
-        stateSubject.send(.scanning(sensors))
+        scanningListSubject.send(sensors)
     }
 }
 
