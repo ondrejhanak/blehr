@@ -14,9 +14,16 @@ struct SensorInfo: Identifiable, Equatable {
     let timestamp: Date
 }
 
+struct DiscoveredSensor: Identifiable, Equatable {
+    let id: UUID
+    let name: String?
+    let rssi: Int
+}
+
 enum SensorState: Equatable {
     case disabled
-    case ready
-    case scanning
+    case idle
+    case scanning([DiscoveredSensor])
+    case connecting
     case connected(SensorInfo)
 }

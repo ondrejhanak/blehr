@@ -17,10 +17,12 @@ struct HeartRateView: View {
             switch viewModel.state {
             case .disabled:
                 disabledView
-            case .ready:
+            case .idle:
                 EmptyView() // no visual representation
-            case .scanning:
-                scanningView
+            case let .scanning(sensors):
+                scanningView(sensors)
+            case .connecting:
+                ProgressView()
             case let .connected(info):
                 PulseView(info: info)
             }
@@ -41,11 +43,28 @@ struct HeartRateView: View {
     }
 
     @ViewBuilder
-    private var scanningView: some View {
-        ProgressView()
-        Text("Searching for a sensor...")
-            .font(.caption)
-            .foregroundColor(.gray)
+    private func scanningView(_ sensors: [DiscoveredSensor]) -> some View {
+        if sensors.isEmpty {
+            ProgressView()
+            Text("Searching for a sensors...")
+                .font(.caption)
+                .foregroundColor(.gray)
+        } else {
+            List(sensors) { sensor in
+                Button {
+                    viewModel.connectSensor(id: sensor.id)
+                } label: {
+                    HStack {
+                        Text(sensor.name ?? sensor.id.uuidString)
+                        Spacer()
+                        Text("\(sensor.rssi) dBm")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .listStyle(.plain)
+        }
     }
 }
 
@@ -61,14 +80,18 @@ struct HeartRateView: View {
     return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
 }
 
-#Preview("ready") {
-    let service = SensorServiceMock(state: .ready)
+#Preview("idle") {
+    let service = SensorServiceMock(state: .idle)
     return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
 }
 
-#Preview("scanning") {
-    let service = SensorServiceMock(state: .scanning)
+#Preview("scanning - empty") {
+    let service = SensorServiceMock(state: .scanning([]))
     return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
+}
 
+#Preview("connecting") {
+    let service = SensorServiceMock(state: .connecting)
+    return HeartRateView(viewModel: HeartRateViewModel(sensorService: service))
 }
 #endif

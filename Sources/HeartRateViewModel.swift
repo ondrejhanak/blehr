@@ -13,7 +13,7 @@ final class HeartRateViewModel: ObservableObject {
     private var sensorService: SensorServiceType
     private var cancellables = Set<AnyCancellable>()
 
-    @Published var state: SensorState = .ready
+    @Published var state: SensorState = .idle
     @Published var heartbeatPulse = false
 
     // MARK: - Lifecycle
@@ -31,6 +31,10 @@ final class HeartRateViewModel: ObservableObject {
         }
     }
 
+    func connectSensor(id: DiscoveredSensor.ID) {
+        sensorService.connect(id: id)
+    }
+
     // MARK: - Private
 
     private func setupObservation() {
@@ -38,7 +42,7 @@ final class HeartRateViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] state in
                 self?.state = state
-                if state == .ready {
+                if state == .idle {
                     self?.sensorService.startScanning()
                 }
                 if case .connected = state {

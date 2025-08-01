@@ -12,14 +12,19 @@ protocol SensorServiceType: AnyObject {
     var state: AnyPublisher<SensorState, Never> { get }
 
     func startScanning()
+    func connect(id: DiscoveredSensor.ID)
 }
 
 final class SensorService: NSObject, SensorServiceType {
+    let sensorDiscoveryTimeout: TimeInterval = 5
+
     private let heartRateServiceUUID = CBUUID(string: "0x180D")
     private let heartRateMeasurementUUID = CBUUID(string: "0x2A37")
     private let stateSubject = PassthroughSubject<SensorState, Never>()
     private var centralManager: CBCentralManager!
     private var heartRatePeripheral: CBPeripheral?
+    private var discovered: [UUID: (sensor: DiscoveredSensor, lastSeen: Date)] = [:]
+    private var cleanupTimer: Timer?
 
     var state: AnyPublisher<SensorState, Never> {
         stateSubject.eraseToAnyPublisher()
@@ -35,9 +40,29 @@ final class SensorService: NSObject, SensorServiceType {
     // MARK: - Methods
 
     func startScanning() {
-        stateSubject.send(.scanning)
+        discovered.removeAll()
+        publishScanningList()
         centralManager.stopScan()
-        centralManager.scanForPeripherals(withServices: [heartRateServiceUUID])
+        cleanupTimer?.invalidate()
+        cleanupTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.pruneStaleSensors()
+        }
+        RunLoop.main.add(cleanupTimer!, forMode: .common)
+        centralManager.scanForPeripherals(withServices: [heartRateServiceUUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
+    }
+
+    func connect(id: DiscoveredSensor.ID) {
+        stateSubject.send(.connecting)
+        cleanupTimer?.invalidate()
+        let peripherals = centralManager.retrievePeripherals(withIdentifiers: [id])
+        if let peripheral = peripherals.first {
+            peripheral.delegate = self
+            centralManager.stopScan()
+            centralManager.connect(peripheral, options: nil)
+            heartRatePeripheral = peripheral
+        } else {
+            stateSubject.send(.idle)
+        }
     }
 
     // MARK: - Private
@@ -51,12 +76,26 @@ final class SensorService: NSObject, SensorServiceType {
             return Int(UInt16(byteArray[1]) | UInt16(byteArray[2]) << 8) // UInt16 little endian
         }
     }
+
+    private func pruneStaleSensors() {
+        let now = Date()
+        discovered = discovered.filter { now.timeIntervalSince($0.value.lastSeen) <= sensorDiscoveryTimeout }
+        publishScanningList()
+    }
+
+    private func publishScanningList() {
+        let sensors = discovered.values
+            .map { $0.sensor }
+            .sorted(by: { $0.rssi > $1.rssi })
+        stateSubject.send(.scanning(sensors))
+    }
+
 }
 
 extension SensorService: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         if central.state == .poweredOn {
-            stateSubject.send(.ready)
+            stateSubject.send(.idle)
         } else {
             stateSubject.send(.disabled)
         }
@@ -67,7 +106,7 @@ extension SensorService: CBCentralManagerDelegate {
         didDisconnectPeripheral peripheral: CBPeripheral,
         error: (any Error)?
     ) {
-        stateSubject.send(.ready)
+        stateSubject.send(.idle)
     }
 
     func centralManager(
@@ -79,14 +118,21 @@ extension SensorService: CBCentralManagerDelegate {
         guard let isConnectable = advertisementData[CBAdvertisementDataIsConnectable] as? Bool, isConnectable else {
             return
         }
-        peripheral.delegate = self
-        central.stopScan()
-        central.connect(peripheral, options: nil)
-        heartRatePeripheral = peripheral
+        let model = DiscoveredSensor(
+            id: peripheral.identifier,
+            name: peripheral.name,
+            rssi: RSSI.intValue
+        )
+        discovered[peripheral.identifier] = (sensor: model, lastSeen: Date())
+        publishScanningList()
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.discoverServices(nil)
+    }
+
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: (any Error)?) {
+        stateSubject.send(.idle)
     }
 }
 
@@ -118,6 +164,7 @@ extension SensorService: CBPeripheralDelegate {
 
 #if DEBUG
 final class SensorServiceMock: SensorServiceType {
+
     private let stateSubject: CurrentValueSubject<SensorState, Never>
 
     var state: AnyPublisher<SensorState, Never> {
@@ -129,5 +176,6 @@ final class SensorServiceMock: SensorServiceType {
     }
 
     func startScanning() {}
+    func connect(id: UUID) {}
 }
 #endif
