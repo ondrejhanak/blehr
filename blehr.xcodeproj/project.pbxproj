@@ -10,6 +10,16 @@
 		EE37D3212E38CD31000BAA68 /* BLE HR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BLE HR.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EE37D34D2E3D36D2000BAA68 /* Exceptions for "Resources" folder in "blehr" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"blehr-Info.plist",
+			);
+			target = EE37D3202E38CD31000BAA68 /* blehr */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		EE37D3232E38CD31000BAA68 /* Sources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -18,6 +28,9 @@
 		};
 		EE37D32F2E38CD6C000BAA68 /* Resources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EE37D34D2E3D36D2000BAA68 /* Exceptions for "Resources" folder in "blehr" target */,
+			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
@@ -263,6 +276,7 @@
 				DEVELOPMENT_TEAM = RSQZ5T9DT6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Resources/blehr-Info.plist";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to access peripherials.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -295,6 +309,7 @@
 				DEVELOPMENT_TEAM = RSQZ5T9DT6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Resources/blehr-Info.plist";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Needed to access peripherials.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
