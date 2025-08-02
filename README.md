@@ -19,7 +19,7 @@ There is also a companion [ESP32 HR Simulator](https://github.com/ondrejhanak/bl
 
 ## Requirements
 
-- iOS 15.0+
+- iOS 16.0+
 - Real iOS device (BLE is not available in the simulator)
 - BLE heart rate monitor supporting BLE (some Garmin models are ANT+ only) or the [simulator](https://github.com/ondrejhanak/blehr-sim)
 
