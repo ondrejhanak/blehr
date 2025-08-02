@@ -13,7 +13,13 @@ struct HeartRateApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HeartRateView(viewModel: viewModel)
+            if isProduction {
+                HeartRateView(viewModel: viewModel)
+            }
         }
+    }
+
+    private var isProduction: Bool {
+        NSClassFromString("XCTestCase") == nil
     }
 }
