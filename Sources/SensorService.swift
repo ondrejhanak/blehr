@@ -83,16 +83,6 @@ final class SensorService: NSObject, SensorServiceType {
 
     // MARK: - Private
 
-    private func parseHeartRate(data: Data) -> Int {
-        let byteArray = [UInt8](data)
-        let flag = byteArray[0]
-        if flag & 0x01 == 0 {
-            return Int(byteArray[1]) // UInt8
-        } else {
-            return Int(UInt16(byteArray[1]) | UInt16(byteArray[2]) << 8) // UInt16 little endian
-        }
-    }
-
     private func pruneStaleSensors() {
         let now = Date()
         discovered = discovered.filter { now.timeIntervalSince($0.value.lastSeen) <= sensorDiscoveryTimeout }
@@ -166,7 +156,7 @@ extension SensorService: CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let data = characteristic.value else { return }
-        let bpm = parseHeartRate(data: data)
+        let bpm = HeartRateParser.parse(data)
         let info = SensorInfo(
             id: peripheral.identifier,
             bpm: bpm,
